@@ -39,7 +39,7 @@ for i in range(1, ultima_pagina+1):
 
 
 df = pd.DataFrame(dic_produtos)
-df.to_csv('C:/Users/fabri/Downloads/preco_cadeira.csv', encoding='utf-8', sep=';')
+df.to_csv('seu/path/preco_cadeira.csv', encoding='utf-8', sep=';')
 
 
 
