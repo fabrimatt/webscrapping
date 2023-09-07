@@ -1,0 +1,60 @@
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+import csv
+import time
+
+
+def scrape_infinite_scroll(url, num_items):
+    # Inicializar o driver do navegador
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    driver.get(url)
+
+    # Inicializar BeautifulSoup
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+    scraped_data = []
+
+    while len(scraped_data) < num_items:
+        # Atualizar o objeto BeautifulSoup com o conteúdo da página
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        # Encontrar todos os blocos de produtos
+        product_blocks = soup.find_all('div', {'class': 'w-full rounded border post'})
+
+        for block in product_blocks:
+            if len(scraped_data) >= num_items:
+                break
+
+            # Extrair o nome do produto
+            inner_div = block.find('div', class_='p-4')
+            product_name = inner_div.find('a', {
+                'href': lambda x: x and x.startswith('/exercise/list_basic_detail/')}).text.strip()
+
+            # Extrair o preço
+            product_price = block.find('h5').text.strip()
+
+            # Adicionar à lista de dados raspados
+            scraped_data.append([product_name, product_price])
+
+        # Simular a rolagem para baixo para carregar mais itens
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # Aguardar o carregamento de novos itens
+
+    # Fechar o navegador
+    driver.quit()
+
+    # Escrever dados em um arquivo CSV
+    with open('scraped_products.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Product Name', 'Product Price'])
+        writer.writerows(scraped_data)
+
+
+if __name__ == '__main__':
+    url = 'https://scrapingclub.com/exercise/list_infinite_scroll/'
+    num_items = 10  # Número de itens a serem raspados
+    scrape_infinite_scroll(url, num_items)
