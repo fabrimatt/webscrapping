@@ -28,7 +28,11 @@ for i in range(1, ultima_pagina+1):
 
     for produto in produtos:
         marca = produto.find('span', class_=re.compile('nameCard')).get_text().strip()
-        preco = produto.find('span', class_=re.compile('priceCard')).get_text().strip()
+        preco = produto.find('span', class_=re.compile('priceCard'))
+        if preco is not None: 
+            preco = preco.get_text().strip() 
+        else: 
+            preco = 0
 
         print(marca, preco)
 
